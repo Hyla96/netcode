@@ -1,5 +1,5 @@
 name: netcode
-description: A starting point for Dart libraries or applications.
+description: A library written purely in dart supporting the netcode protocol.
 version: 0.0.0
 repository: https://github.com/Hyla96/netcode
 topics: [netcode, gaming, server, client]
