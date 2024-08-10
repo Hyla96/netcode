@@ -12,7 +12,6 @@ void main() {
   const ipv6Type = 0x02;
   const address_1 = "172.16.254.1:80";
   const address_2 = "[2001:0db8:0000:0000:0000:ff00:0042:8329]:293";
-  const address_3 = "172.16.254.2";
 
   group('Connect Token', () {
     setUp(() {});
@@ -29,11 +28,9 @@ void main() {
 
       final address1 = address_1.split(":")[0];
       final address2 = address_2.split("]:")[0].replaceAll('[', '');
-      // final address3 = address_3.split(":")[0];
 
       final port1 = address_1.split(":")[1];
       final port2 = address_2.split("]:")[1];
-      // final port3 = address_3.split(":")[1];
 
       for (int i = 0; i < 4; i++) {
         buffer.setUint8(17 + i, int.parse(address1.split(".")[i]));
@@ -57,16 +54,21 @@ void main() {
 
       final random = Random.secure();
 
-      final bytes1 = Uint8List(32); // Create a Uint8List of length 32
+      final bytes1 = Uint8List(32);
       for (int i = 0; i < bytes1.length; i++) {
         bytes1[i] = random.nextInt(256);
         buffer.setInt8(42 + i, bytes1[i]);
       }
 
-      final bytes2 = Uint8List(32); // Create a Uint8List of length 32
+      final bytes2 = Uint8List(32);
       for (int i = 0; i < bytes2.length; i++) {
         bytes2[i] = random.nextInt(256);
         buffer.setInt8(74 + i, bytes2[i]);
+      }
+      final bytes3 = Uint8List(256);
+      for (int i = 0; i < bytes3.length; i++) {
+        bytes3[i] = random.nextInt(256);
+        buffer.setInt8(106 + i, bytes3[i]);
       }
 
       final token = PrivateToken.fromBuffer(buffer);
@@ -77,6 +79,7 @@ void main() {
       expect(token.serverAddresses[1], address_2);
       expect(token.clientToServerKey, bytes1);
       expect(token.serverToClientKey, bytes2);
+      expect(token.userData, bytes3);
     });
   });
 }
