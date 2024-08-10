@@ -81,6 +81,10 @@ void main() {
       expect(token.clientToServerKey, bytes1);
       expect(token.serverToClientKey, bytes2);
       expect(token.userData, bytes3);
+
+      final data = token.toByteData();
+
+      expect(data.buffer.asUint8List(K), buffer.buffer.asUint8List());
     });
   });
 }

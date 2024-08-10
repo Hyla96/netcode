@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:netcode_core/src/address_endpoint.dart';
@@ -82,15 +83,71 @@ class PrivateToken {
     final data = ByteData(1024);
     int offset = 0;
 
-    data.setUint64(offset, clientId.toUnsigned(64), Endian.little);
+    data.setUint64(
+      offset,
+      clientId.toUnsigned(64),
+      Endian.little,
+    );
     offset += 8;
 
-    data.setUint32(offset, timeout.toUnsigned(32), Endian.little);
+    data.setUint32(
+      offset,
+      timeout.toUnsigned(32),
+      Endian.little,
+    );
     offset += 4;
 
     data.setUint32(
-        offset, serverAddresses.length.toUnsigned(32), Endian.little);
+      offset,
+      serverAddresses.length.toUnsigned(32),
+      Endian.little,
+    );
     offset += 4;
+
+    for (final endpoint in serverAddresses) {
+      if (endpoint.address.type == InternetAddressType.IPv4) {
+        data.setUint8(
+          offset,
+          1.toUnsigned(8),
+        );
+      } else if (endpoint.address.type == InternetAddressType.IPv6) {
+        data.setUint8(
+          offset,
+          2.toUnsigned(8),
+        );
+      } else {
+        throw Exception('Address type not valid');
+      }
+
+      offset += 1;
+
+      for (final v in endpoint.address.rawAddress) {
+        data.setUint8(offset, v);
+        offset++;
+      }
+
+      data.setUint16(
+        offset,
+        endpoint.port.toUnsigned(16),
+        Endian.little,
+      );
+      offset += 2;
+    }
+
+    for (final key in clientToServerKey) {
+      data.setUint8(offset, key);
+      offset++;
+    }
+
+    for (final key in serverToClientKey) {
+      data.setUint8(offset, key);
+      offset++;
+    }
+
+    for (final d in userData) {
+      data.setUint8(offset, d);
+      offset++;
+    }
 
     return data;
   }
