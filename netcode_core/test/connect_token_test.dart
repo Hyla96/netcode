@@ -71,12 +71,13 @@ void main() {
         buffer.setInt8(106 + i, bytes3[i]);
       }
 
-      final token = PrivateToken.fromBuffer(buffer);
+      final token = PrivateToken.fromByteData(buffer);
 
       expect(token.clientId, 1);
       expect(token.timeout, 30);
-      expect(token.serverAddresses[0], address_1);
-      expect(token.serverAddresses[1], address_2);
+      expect(token.serverAddresses[0].toString(), address_1);
+      expect(
+          token.serverAddresses[1].toString(), "[2001:db8::ff00:42:8329]:293");
       expect(token.clientToServerKey, bytes1);
       expect(token.serverToClientKey, bytes2);
       expect(token.userData, bytes3);

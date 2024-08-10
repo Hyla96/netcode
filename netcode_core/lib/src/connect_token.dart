@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:netcode_core/src/address_endpoint.dart';
 import 'package:netcode_core/src/netcode_version.dart';
 
 class ConnectToken {
@@ -22,15 +23,15 @@ class PrivateToken {
 
   final int clientId;
   final int timeout;
-  final List<String> serverAddresses;
+  final List<AddressEndpoint> serverAddresses;
   final Uint8List clientToServerKey;
   final Uint8List serverToClientKey;
   final Uint8List userData;
 
-  factory PrivateToken.fromBuffer(ByteData data) {
+  factory PrivateToken.fromByteData(ByteData data) {
     final addressesLength = data.getUint32(12, Endian.little);
     int offset = 16;
-    final addresses = <String>[];
+    final addresses = <AddressEndpoint>[];
 
     for (int i = 0; i < addressesLength; i++) {
       final type = data.getUint8(offset).toInt();
@@ -38,32 +39,12 @@ class PrivateToken {
 
       if (type == 1) {
         // IPV4
-        var address = "";
-        for (int k = 0; k < 4; k++) {
-          address += "${k != 0 ? "." : ""}${data.getUint8(offset).toInt()}";
-          offset++;
-        }
-        address += ":";
-
-        address += data.getUint16(offset, Endian.little).toInt().toString();
-
-        offset += 2;
-        addresses.add(address);
+        addresses.add(AddressEndpoint.fromRawAddress(data, offset));
+        offset += 6;
       } else if (type == 2) {
         // IPV6
-        var address = "[";
-        for (int k = 0; k < 8; k++) {
-          address +=
-              "${k != 0 ? ":" : ""}${data.getUint16(offset).toRadixString(16).padLeft(4, "0")}";
-          offset += 2;
-        }
-        address += "]:";
-
-        address += data.getUint16(offset, Endian.little).toInt().toString();
-
-        offset += 2;
-
-        addresses.add(address);
+        addresses.add(AddressEndpoint.fromRawAddress(data, offset, true));
+        offset += 18;
       } else {
         throw Exception('Address type not supported');
       }
@@ -95,5 +76,22 @@ class PrivateToken {
       serverToClientKey: stc,
       userData: uData,
     );
+  }
+
+  ByteData toByteData() {
+    final data = ByteData(1024);
+    int offset = 0;
+
+    data.setUint64(offset, clientId.toUnsigned(64), Endian.little);
+    offset += 8;
+
+    data.setUint32(offset, timeout.toUnsigned(32), Endian.little);
+    offset += 4;
+
+    data.setUint32(
+        offset, serverAddresses.length.toUnsigned(32), Endian.little);
+    offset += 4;
+
+    return data;
   }
 }
