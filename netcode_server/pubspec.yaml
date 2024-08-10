@@ -1,0 +1,14 @@
+name: netcode_server
+description: Dart implementation of netcode server
+version: 0.0.0
+repository: https://github.com/Hyla96/netcode/netcode_server
+topics: [netcode, gaming]
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.24.0

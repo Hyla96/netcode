@@ -1,0 +1,14 @@
+name: netcode_client
+description: Dart implementation of netcode client
+version: 0.0.0
+repository: https://github.com/Hyla96/netcode/netcode_client
+topics: [netcode, gaming]
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.24.0

@@ -1,0 +1,14 @@
+name: netcode_backend
+description: Dart implementation of netcode backend
+version: 0.0.0
+repository: https://github.com/Hyla96/netcode/netcode_backend
+topics: [netcode, gaming]
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.24.0

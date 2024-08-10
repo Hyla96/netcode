@@ -1,0 +1,8 @@
+name: netcode
+repository: https://github.com/Hyla96/netcode
+
+packages:
+  - /netcode_core
+  - /netcode_backend
+  - /netcode_client
+  - /netcode_server

@@ -1,16 +1,6 @@
 name: netcode
-description: A library written purely in dart supporting the netcode protocol.
-version: 0.0.0
-repository: https://github.com/Hyla96/netcode
-topics: [netcode, gaming]
 
 environment:
-  sdk: ^3.5.0
-
-# Add regular dependencies here.
-dependencies:
-  # path: ^1.8.0
-
+  sdk: '>=3.0.0 <4.0.0'
 dev_dependencies:
-  lints: ^4.0.0
-  test: ^1.24.0
+  melos: ^6.1.0
