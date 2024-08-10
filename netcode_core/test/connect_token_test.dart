@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:netcode_core/src/connect_token.dart';
@@ -54,12 +55,28 @@ void main() {
 
       buffer.setUint16(40, int.parse(port2), Endian.little);
 
+      final random = Random.secure();
+
+      final bytes1 = Uint8List(32); // Create a Uint8List of length 32
+      for (int i = 0; i < bytes1.length; i++) {
+        bytes1[i] = random.nextInt(256);
+        buffer.setInt8(42 + i, bytes1[i]);
+      }
+
+      final bytes2 = Uint8List(32); // Create a Uint8List of length 32
+      for (int i = 0; i < bytes2.length; i++) {
+        bytes2[i] = random.nextInt(256);
+        buffer.setInt8(74 + i, bytes2[i]);
+      }
+
       final token = PrivateToken.fromBuffer(buffer);
 
       expect(token.clientId, 1);
       expect(token.timeout, 30);
       expect(token.serverAddresses[0], address_1);
       expect(token.serverAddresses[1], address_2);
+      expect(token.clientToServerKey, bytes1);
+      expect(token.serverToClientKey, bytes2);
     });
   });
 }
