@@ -84,7 +84,7 @@ void main() {
 
       final data = token.toByteData();
 
-      expect(data.buffer.asUint8List(K), buffer.buffer.asUint8List());
+      expect(data.buffer.asUint8List(), buffer.buffer.asUint8List());
     });
   });
 }
