@@ -2,15 +2,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:netcode_core/src/address_endpoint.dart';
-import 'package:netcode_core/src/netcode_version.dart';
-
-class ConnectToken {
-  const ConnectToken({
-    this.version = NetcodeVersion.v1_02,
-  });
-
-  final NetcodeVersion version;
-}
 
 class PrivateToken {
   const PrivateToken({
