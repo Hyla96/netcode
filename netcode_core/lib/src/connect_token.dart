@@ -46,6 +46,10 @@ class PrivateToken {
     final addressesLength = data.getUint32(offset, Endian.little);
     offset += 4;
 
+    if (addressesLength < 1 || addressesLength > 32) {
+      throw Exception("Address length not valid: $addressesLength");
+    }
+
     for (int i = 0; i < addressesLength; i++) {
       final type = data.getUint8(offset).toInt();
       offset++;
