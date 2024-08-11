@@ -8,7 +8,7 @@ import 'connect_token/lib.dart';
 class NetcodeEncryption {
   static Future<Uint8List> encryptPrivateToken({
     required PrivateToken token,
-    required int protocolID,
+    required int protocolId,
     required Uint8List nonce,
     required Uint8List encryptionKey,
     required int expiresAt,
@@ -27,7 +27,7 @@ class NetcodeEncryption {
       secretKey: SecretKey(encryptionKey),
       nonce: nonce,
       aad: AssociatedData(
-        protocolId: protocolID,
+        protocolId: protocolId,
         expiresAt: expiresAt,
         version: version,
       ).toByteData().buffer.asUint8List(),

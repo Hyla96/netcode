@@ -34,6 +34,40 @@ class ConnectToken {
 
   final _decryptedToken = Completer<PrivateToken>();
 
+  static Future<ConnectToken> fromClearToken({
+    required int protocolId,
+    required int createdAt,
+    required int expiresAt,
+    required Uint8List nonce,
+    required Uint8List encryptionKey,
+    required PrivateToken token,
+    required int timeout,
+    required List<AddressEndpoint> serverAddresses,
+    required Uint8List clientToServerKey,
+    required Uint8List serverToClientKey,
+    NetcodeVersion version = NetcodeVersion.v1_02,
+  }) async {
+    final encryptedToken = await NetcodeEncryption.encryptPrivateToken(
+      token: token,
+      protocolId: protocolId,
+      nonce: nonce,
+      encryptionKey: encryptionKey,
+      expiresAt: expiresAt,
+    );
+
+    return ConnectToken(
+      protocolId: protocolId,
+      createdAt: createdAt,
+      expiresAt: expiresAt,
+      nonce: nonce,
+      encryptedPrivateToken: encryptedToken,
+      timeout: timeout,
+      serverAddresses: serverAddresses,
+      clientToServerKey: clientToServerKey,
+      serverToClientKey: serverToClientKey,
+    );
+  }
+
   Future<PrivateToken> decryptPrivateToken(Uint8List key) async {
     if (_decryptedToken.isCompleted) {
       return _decryptedToken.future;

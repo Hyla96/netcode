@@ -69,7 +69,7 @@ void main() {
 
       final encrypted = await NetcodeEncryption.encryptPrivateToken(
         token: token,
-        protocolID: protocolID,
+        protocolId: protocolID,
         nonce: nonce,
         encryptionKey: key,
         expiresAt: timestamp,
