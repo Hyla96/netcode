@@ -22,9 +22,8 @@ class PrivateToken {
 
   factory PrivateToken.fromByteData(ByteData data) {
     final addresses = <AddressEndpoint>[];
-    final cts = Uint8List(32);
-    final stc = Uint8List(32);
-    final userData = Uint8List(256);
+
+    final dataUint8 = data.buffer.asUint8List();
 
     int offset = 0;
 
@@ -58,20 +57,14 @@ class PrivateToken {
       }
     }
 
-    for (int i = 0; i < 32; i++) {
-      cts[i] = data.getUint8(offset);
-      offset++;
-    }
+    final cts = dataUint8.sublist(offset, offset + 32);
+    offset += 32;
 
-    for (int i = 0; i < 32; i++) {
-      stc[i] = data.getUint8(offset);
-      offset++;
-    }
+    final stc = dataUint8.sublist(offset, offset + 32);
+    offset += 32;
 
-    for (int i = 0; i < 256; i++) {
-      userData[i] = data.getUint8(offset);
-      offset++;
-    }
+    final userData = dataUint8.sublist(offset, offset + 256);
+    offset += 256;
 
     return PrivateToken(
       clientId: clientId,

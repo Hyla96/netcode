@@ -34,6 +34,83 @@ class ConnectToken {
 
   final _decryptedToken = Completer<PrivateToken>();
 
+  factory ConnectToken.fromByteData(ByteData data) {
+    final dataUint8 = data.buffer.asUint8List();
+
+    int offset = 0;
+
+    final version = dataUint8.sublist(offset, offset + 13);
+
+    final versionEnum = NetcodeVersion.fromAscii(version);
+
+    if (versionEnum == null) {
+      throw Exception("Version is not valid");
+    }
+    offset += 13;
+
+    final protocolId = data.getUint64(offset, Endian.little);
+    offset += 8;
+
+    final createdAt = data.getUint64(offset, Endian.little);
+    offset += 8;
+
+    final expiresAt = data.getUint64(offset, Endian.little);
+    offset += 8;
+
+    final nonce = dataUint8.sublist(offset, offset + 24);
+    offset += 24;
+
+    final encryptedToken = dataUint8.sublist(offset, offset + 1024);
+    offset += 1024;
+
+    final timeout = data.getUint32(offset, Endian.little);
+    offset += 4;
+
+    final addressesLength = data.getUint32(offset, Endian.little);
+    offset += 4;
+
+    if (addressesLength < 1 || addressesLength > 32) {
+      throw Exception("Address length not valid: $addressesLength");
+    }
+
+    final addresses = <AddressEndpoint>[];
+
+    for (int i = 0; i < addressesLength; i++) {
+      final type = data.getUint8(offset).toInt();
+      offset++;
+
+      if (type == 1) {
+        // IPV4
+        addresses.add(AddressEndpoint.fromRawAddress(data, offset));
+        offset += 6;
+      } else if (type == 2) {
+        // IPV6
+        addresses.add(AddressEndpoint.fromRawAddress(data, offset, true));
+        offset += 18;
+      } else {
+        throw Exception('Address type not supported');
+      }
+    }
+
+    final clientToServerKey = dataUint8.sublist(offset, offset + 32);
+    offset += 32;
+
+    final serverToClientKey = dataUint8.sublist(offset, offset + 32);
+    offset += 32;
+
+    return ConnectToken(
+      version: versionEnum,
+      protocolId: protocolId,
+      expiresAt: expiresAt,
+      createdAt: createdAt,
+      nonce: nonce,
+      encryptedPrivateToken: encryptedToken,
+      timeout: timeout,
+      serverAddresses: addresses,
+      clientToServerKey: clientToServerKey,
+      serverToClientKey: serverToClientKey,
+    );
+  }
   static Future<ConnectToken> fromClearToken({
     required int protocolId,
     required int createdAt,
@@ -96,8 +173,8 @@ class ConnectToken {
       if (i < version.length) {
         data.setUint8(offset, version[i]);
       }
+      offset++;
     }
-    offset += 13;
 
     data.setUint64(
       offset,
@@ -120,13 +197,12 @@ class ConnectToken {
     );
     offset += 8;
 
-    for (int i = 0; i < nonce.length; i++) {
-      if (i < version.length) {
+    for (int i = 0; i < 24; i++) {
+      if (i < nonce.length) {
         data.setUint8(offset, nonce[i]);
       }
       offset++;
     }
-    offset += nonce.lengthInBytes;
 
     for (int i = 0; i < 1024; i++) {
       if (i < encryptedPrivateToken.length) {
@@ -134,6 +210,13 @@ class ConnectToken {
       }
       offset++;
     }
+
+    data.setUint32(
+      offset,
+      timeout.toUnsigned(32),
+      Endian.little,
+    );
+    offset += 4;
 
     data.setUint32(
       offset,
