@@ -30,9 +30,21 @@ class PrivateToken {
   final Uint8List userData;
 
   factory PrivateToken.fromByteData(ByteData data) {
-    final addressesLength = data.getUint32(12, Endian.little);
-    int offset = 16;
     final addresses = <AddressEndpoint>[];
+    final cts = Uint8List(32);
+    final stc = Uint8List(32);
+    final userData = Uint8List(256);
+
+    int offset = 0;
+
+    final clientId = BigInt.from(data.getUint64(offset, Endian.little)).toInt();
+    offset += 8;
+
+    final timeout = BigInt.from(data.getUint32(offset, Endian.little)).toInt();
+    offset += 4;
+
+    final addressesLength = data.getUint32(offset, Endian.little);
+    offset += 4;
 
     for (int i = 0; i < addressesLength; i++) {
       final type = data.getUint8(offset).toInt();
@@ -50,9 +62,6 @@ class PrivateToken {
         throw Exception('Address type not supported');
       }
     }
-    final cts = Uint8List(32);
-    final stc = Uint8List(32);
-    final userData = Uint8List(256);
 
     for (int i = 0; i < 32; i++) {
       cts[i] = data.getUint8(offset);
@@ -70,8 +79,8 @@ class PrivateToken {
     }
 
     return PrivateToken(
-      clientId: BigInt.from(data.getUint64(0, Endian.little)).toInt(),
-      timeout: BigInt.from(data.getUint32(8, Endian.little)).toInt(),
+      clientId: clientId,
+      timeout: timeout,
       serverAddresses: addresses,
       clientToServerKey: cts,
       serverToClientKey: stc,
