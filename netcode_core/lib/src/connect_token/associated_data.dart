@@ -5,12 +5,12 @@ import 'package:netcode_core/src/netcode_version.dart';
 class AssociatedData {
   const AssociatedData({
     this.version = NetcodeVersion.v1_02,
-    required this.protocolID,
+    required this.protocolId,
     required this.expiresAt,
   });
 
   final NetcodeVersion version;
-  final int protocolID;
+  final int protocolId;
   final int expiresAt;
 
   factory AssociatedData.fromByteData(ByteData data) {
@@ -36,7 +36,7 @@ class AssociatedData {
 
     return AssociatedData(
       version: versionEnum,
-      protocolID: protocolID,
+      protocolId: protocolID,
       expiresAt: timestamp,
     );
   }
@@ -56,7 +56,7 @@ class AssociatedData {
 
     data.setUint64(
       offset,
-      protocolID.toUnsigned(64),
+      protocolId.toUnsigned(64),
       Endian.little,
     );
     offset += 8;

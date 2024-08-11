@@ -12,14 +12,14 @@ void main() {
               .floor();
 
       final data = AssociatedData(
-        protocolID: 1882,
+        protocolId: 1882,
         expiresAt: timestamp,
       );
 
       final newData = AssociatedData.fromByteData(data.toByteData());
 
       expect(newData.expiresAt, timestamp);
-      expect(newData.protocolID, protocol);
+      expect(newData.protocolId, protocol);
       expect(newData.version, data.version);
     });
   });

@@ -77,7 +77,7 @@ void main() {
 
       final decrypted = await NetcodeEncryption.decryptPrivateToken(
         encryptedToken: encrypted,
-        protocolID: protocolID,
+        protocolId: protocolID,
         nonce: nonce,
         encryptionKey: key,
         expiresAt: timestamp,

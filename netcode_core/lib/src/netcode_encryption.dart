@@ -27,7 +27,7 @@ class NetcodeEncryption {
       secretKey: SecretKey(encryptionKey),
       nonce: nonce,
       aad: AssociatedData(
-        protocolID: protocolID,
+        protocolId: protocolID,
         expiresAt: expiresAt,
         version: version,
       ).toByteData().buffer.asUint8List(),
@@ -42,7 +42,7 @@ class NetcodeEncryption {
 
   static Future<PrivateToken> decryptPrivateToken({
     required Uint8List encryptedToken,
-    required int protocolID,
+    required int protocolId,
     required Uint8List nonce,
     required Uint8List encryptionKey,
     required int expiresAt,
@@ -58,7 +58,7 @@ class NetcodeEncryption {
       ),
       secretKey: SecretKey(encryptionKey),
       aad: AssociatedData(
-        protocolID: protocolID,
+        protocolId: protocolId,
         expiresAt: expiresAt,
         version: version,
       ).toByteData().buffer.asUint8List(),
