@@ -52,7 +52,7 @@ class PrivateToken {
     }
     final cts = Uint8List(32);
     final stc = Uint8List(32);
-    final uData = Uint8List(256);
+    final userData = Uint8List(256);
 
     for (int i = 0; i < 32; i++) {
       cts[i] = data.getUint8(offset);
@@ -65,7 +65,7 @@ class PrivateToken {
     }
 
     for (int i = 0; i < 256; i++) {
-      uData[i] = data.getUint8(offset);
+      userData[i] = data.getUint8(offset);
       offset++;
     }
 
@@ -75,7 +75,7 @@ class PrivateToken {
       serverAddresses: addresses,
       clientToServerKey: cts,
       serverToClientKey: stc,
-      userData: uData,
+      userData: userData,
     );
   }
 
