@@ -51,7 +51,39 @@ class ConnectionRequestPacket extends Packet {
 
   @override
   ByteData toByteData() {
-    // TODO: implement toByteData
-    throw UnimplementedError();
+    final data = ByteData(1078);
+    int offset = 0;
+
+    data.setUint8(offset, type.code.toUnsigned(8));
+    offset += 1;
+
+    for (var i = 0; i < 13; i++) {
+      if (i < version.asAscii.length) {
+        data.setUint8(offset, version.asAscii[i]);
+      }
+      offset++;
+    }
+
+    data.setUint64(offset, protocolId.toUnsigned(64), Endian.little);
+    offset += 8;
+
+    data.setUint64(offset, expiresAt.toUnsigned(64), Endian.little);
+    offset += 8;
+
+    for (var i = 0; i < 24; i++) {
+      if (i < nonce.length) {
+        data.setUint8(offset, nonce[i]);
+      }
+      offset++;
+    }
+
+    for (var i = 0; i < 1024; i++) {
+      if (i < encryptedPrivateToken.length) {
+        data.setUint8(offset, encryptedPrivateToken[i]);
+      }
+      offset++;
+    }
+
+    return data;
   }
 }
