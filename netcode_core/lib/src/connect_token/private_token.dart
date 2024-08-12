@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:netcode_core/src/address_endpoint.dart';
+import 'package:netcode_core/src/util/const.dart';
 
 class PrivateToken {
   const PrivateToken({
@@ -77,7 +78,7 @@ class PrivateToken {
   }
 
   ByteData toByteData() {
-    final data = ByteData(1024);
+    final data = ByteData(PRIVATE_TOKEN_MAX_LENGTH);
     int offset = 0;
 
     data.setUint64(

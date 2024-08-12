@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:netcode_core/src/address_endpoint.dart';
+import 'package:netcode_core/src/challange_token/challenge_token.dart';
 import 'package:netcode_core/src/connect_token/lib.dart';
 import 'package:netcode_core/src/netcode_encryption.dart';
 import 'package:test/test.dart';
@@ -11,7 +12,52 @@ void main() {
   group('Netcode Encryption', () {
     setUp(() {});
 
-    test('encrptyon and decryption of private token', () async {
+    test('encryption and decryption of challenge token', () async {
+      final clientID = 177;
+      final rng = Random();
+      final userData = Uint8List.fromList(
+        List.generate(
+          256,
+          (_) => rng.nextInt(256),
+        ),
+      );
+
+      final token = ChallengeToken(
+        clientId: clientID,
+        userData: userData,
+      );
+
+      final nonce = Uint8List.fromList(
+        List.generate(
+          12,
+          (_) => rng.nextInt(256),
+        ),
+      );
+
+      final key = Uint8List.fromList(
+        List.generate(
+          32,
+          (_) => rng.nextInt(256),
+        ),
+      );
+
+      final encrypted = await NetcodeEncryption.encryptChallengeToken(
+        token: token,
+        nonce: nonce,
+        encryptionKey: key,
+      );
+
+      final decrypted = await NetcodeEncryption.decryptChallengeToken(
+        encryptedToken: encrypted,
+        nonce: nonce,
+        encryptionKey: key,
+      );
+
+      expect(decrypted.clientId, token.clientId);
+      expect(decrypted.userData, token.userData);
+    });
+
+    test('encryption and decryption of private token', () async {
       final clientID = 177;
       final protocolID = 1882;
       final timestamp =
