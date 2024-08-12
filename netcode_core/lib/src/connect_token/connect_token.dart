@@ -42,10 +42,6 @@ class ConnectToken {
     final version = dataUint8.sublist(offset, offset + 13);
 
     final versionEnum = NetcodeVersion.fromAscii(version);
-
-    if (versionEnum == null) {
-      throw Exception("Version is not valid");
-    }
     offset += 13;
 
     final protocolId = data.getUint64(offset, Endian.little);

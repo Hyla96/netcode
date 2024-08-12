@@ -10,7 +10,7 @@ enum NetcodeVersion {
   final String name;
   Uint8List get asAscii => AsciiEncoder().convert(name + "\x00");
 
-  static NetcodeVersion? fromAscii(Uint8List ascii) {
+  static NetcodeVersion fromAscii(Uint8List ascii) {
     Function eq = const ListEquality().equals;
     if (NetcodeVersion.values.any(
       (v) => eq(
@@ -26,6 +26,6 @@ enum NetcodeVersion {
       );
     }
 
-    return null;
+    throw Exception("Version is not valid");
   }
 }

@@ -14,25 +14,19 @@ class AssociatedData {
   final int expiresAt;
 
   factory AssociatedData.fromByteData(ByteData data) {
-    final version = Uint8List(13);
+    final uint8list = data.buffer.asUint8List();
 
     int offset = 0;
 
-    for (int i = 0; i < version.length; i++) {
-      version[i] = data.getUint8(offset);
-      offset++;
-    }
-
-    final versionEnum = NetcodeVersion.fromAscii(version);
-
-    if (versionEnum == null) {
-      throw Exception("Version is not valid");
-    }
+    final versionEnum =
+        NetcodeVersion.fromAscii(uint8list.sublist(offset, offset + 13));
+    offset += 13;
 
     final protocolID = data.getUint64(offset, Endian.little);
     offset += 8;
 
     final timestamp = data.getUint64(offset, Endian.little);
+    offset += 8;
 
     return AssociatedData(
       version: versionEnum,
