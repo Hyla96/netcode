@@ -9,12 +9,12 @@ abstract class Packet {
 
   ByteData toByteData();
   static Packet? fromByteData(ByteData data) {
-    final code = data.getUint8(0);
-    final type = PacketType.fromCode(code);
+    print(data.buffer.asUint8List());
+    final type = PacketType.fromCode(data.getUint8(0).toUnsigned(8));
     if (type == PacketType.request) {
-      return ConnectionRequestPacket.fromByteData(data.buffer.asByteData(1));
+      return ConnectionRequestPacket.fromByteData(data);
     }
-    return EncryptedPacket.fromByteData(code, data.buffer.asByteData(1));
+    return EncryptedPacket.fromByteData(data);
   }
 }
 
@@ -26,19 +26,32 @@ abstract class EncryptedPacket extends Packet {
 
   final int sequenceNumber;
   final ByteData packetData;
-  static EncryptedPacket? fromByteData(int firstByte, ByteData data) {
-    final type = PacketType.fromCode(firstByte >> 4);
-    final sequenceLength = (firstByte << 4);
+  static EncryptedPacket? fromByteData(ByteData data) {
+    int offset = 0;
 
-    final sequenceNumber = data.buffer
-        .asUint8List(0, sequenceLength)
-        .buffer
-        .asByteData(0, 8)
-        .getUint64(0, Endian.little);
+    final firstByte = data.getUint8(0);
+    final sequenceLength = firstByte.toUnsigned(4);
+    offset++;
+
+    final sequence = Uint8List(8);
+
+    final s =
+        data.buffer.asUint8List().sublist(offset, offset + sequenceLength);
+
+    for (int i = 0; i < sequence.length; i++) {
+      if (i < s.length) {
+        sequence[i] = s[i];
+      }
+    }
+
+    offset += sequenceLength;
+
+    final sequenceNumber =
+        sequence.buffer.asByteData().getUint64(0, Endian.little);
 
     final packetData = data.buffer.asByteData(sequenceLength);
 
-    return switch (type) {
+    return switch (PacketType.fromCode((firstByte >> 4).toUnsigned(8))) {
       PacketType.denied =>
         ConnectionDeniedPacket.fromByteData(sequenceNumber, packetData),
       PacketType.challenge =>

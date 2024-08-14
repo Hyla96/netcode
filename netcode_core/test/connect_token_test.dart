@@ -15,8 +15,6 @@ void main() {
       final clientID = 177;
       final protocolID = 1882;
 
-      final createdAt = (DateTime.now().millisecondsSinceEpoch / 1000).floor();
-
       final expiresAt =
           (DateTime.now().add(Duration(hours: 6)).millisecondsSinceEpoch / 1000)
               .floor();
