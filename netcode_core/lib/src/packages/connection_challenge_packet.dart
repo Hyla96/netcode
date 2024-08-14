@@ -2,13 +2,22 @@ import 'dart:typed_data';
 
 import 'packet.dart';
 
-class ConnectionChallengePacket extends Packet {
-  const ConnectionChallengePacket();
+class ConnectionChallengePacket extends EncryptedPacket {
+  const ConnectionChallengePacket({
+    required super.sequenceNumber,
+    required super.packetData,
+  });
 
   final type = PacketType.challenge;
 
-  factory ConnectionChallengePacket.fromByteData(ByteData data) {
-    return ConnectionChallengePacket();
+  factory ConnectionChallengePacket.fromByteData(
+    int sequenceNumber,
+    ByteData data,
+  ) {
+    return ConnectionChallengePacket(
+      sequenceNumber: sequenceNumber,
+      packetData: data,
+    );
   }
 
   @override

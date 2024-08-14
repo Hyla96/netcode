@@ -9,17 +9,49 @@ abstract class Packet {
 
   ByteData toByteData();
   static Packet? fromByteData(ByteData data) {
-    final type = PacketType.fromCode(data.getUint8(0));
+    final code = data.getUint8(0);
+    final type = PacketType.fromCode(code);
+    if (type == PacketType.request) {
+      return ConnectionRequestPacket.fromByteData(data.buffer.asByteData(1));
+    }
+    return EncryptedPacket.fromByteData(code, data.buffer.asByteData(1));
+  }
+}
+
+abstract class EncryptedPacket extends Packet {
+  const EncryptedPacket({
+    required this.sequenceNumber,
+    required this.packetData,
+  });
+
+  final int sequenceNumber;
+  final ByteData packetData;
+  static EncryptedPacket? fromByteData(int firstByte, ByteData data) {
+    final type = PacketType.fromCode(firstByte >> 4);
+    final sequenceLength = (firstByte << 4);
+
+    final sequenceNumber = data.buffer
+        .asUint8List(0, sequenceLength)
+        .buffer
+        .asByteData(0, 8)
+        .getUint64(0, Endian.little);
+
+    final packetData = data.buffer.asByteData(sequenceLength);
 
     return switch (type) {
-      PacketType.request => ConnectionRequestPacket.fromByteData(data),
-      PacketType.denied => ConnectionDeniedPacket.fromByteData(data),
-      PacketType.challenge => ConnectionChallengePacket.fromByteData(data),
-      PacketType.response => ConnectionResponsePacket.fromByteData(data),
-      PacketType.keepAlive => ConnectionKeepAlivePacket.fromByteData(data),
-      PacketType.payload => ConnectionPayloadPacket.fromByteData(data),
-      PacketType.disconnect => ConnectionDisconnectPacket.fromByteData(data),
-      null => null,
+      PacketType.denied =>
+        ConnectionDeniedPacket.fromByteData(sequenceNumber, packetData),
+      PacketType.challenge =>
+        ConnectionChallengePacket.fromByteData(sequenceNumber, packetData),
+      PacketType.response =>
+        ConnectionResponsePacket.fromByteData(sequenceNumber, packetData),
+      PacketType.keepAlive =>
+        ConnectionKeepAlivePacket.fromByteData(sequenceNumber, packetData),
+      PacketType.payload =>
+        ConnectionPayloadPacket.fromByteData(sequenceNumber, packetData),
+      PacketType.disconnect =>
+        ConnectionDisconnectPacket.fromByteData(sequenceNumber, packetData),
+      _ => null,
     };
   }
 }
