@@ -56,7 +56,7 @@ abstract class EncryptedPacket<T> extends Packet {
       PacketType.payload =>
         ConnectionPayloadPacket.fromByteData(sequenceNumber, packetData),
       PacketType.disconnect =>
-        ConnectionDisconnectPacket.fromByteData(sequenceNumber, packetData),
+        ConnectionDisconnectPacket.fromByteData(sequenceNumber),
       _ => null,
     };
   }

@@ -2,27 +2,38 @@ import 'dart:typed_data';
 
 import 'package:netcode_core/netcode_core.dart';
 
-class ConnectionDisconnectPacket extends EncryptedPacket<ByteData> {
+class ConnectionDisconnectPacket extends EncryptedPacket {
   const ConnectionDisconnectPacket({
     required super.sequenceNumber,
-    required super.data,
-  });
-
+  }) : super(data: null);
   final type = PacketType.disconnect;
 
   factory ConnectionDisconnectPacket.fromByteData(
     int sequenceNumber,
-    ByteData data,
   ) {
     return ConnectionDisconnectPacket(
       sequenceNumber: sequenceNumber,
-      data: data,
     );
   }
 
   @override
   ByteData toByteData() {
-    // TODO: implement toByteData
-    throw UnimplementedError();
+    int offset = 0;
+    final sequenceNumberBytes =
+        ByteManipulationUtil.sequenceNumberToBytes(sequenceNumber);
+
+    final data = ByteData(1 + sequenceNumberBytes.lengthInBytes);
+    data.setUint8(
+      offset,
+      getFirstByte(sequenceNumberBytes.lengthInBytes),
+    );
+    offset++;
+
+    for (int i in sequenceNumberBytes.reversed) {
+      data.setUint8(offset, i);
+      offset++;
+    }
+
+    return data;
   }
 }
