@@ -33,11 +33,7 @@ abstract class EncryptedPacket<T> extends Packet {
     offset++;
 
     final sequenceNumber = Uint8List.fromList(
-      data.buffer
-          .asUint8List()
-          .sublist(offset, offset + sequenceLength)
-          .reversed
-          .toList()
+      data.buffer.asUint8List(offset, sequenceLength).reversed.toList()
         ..addAll(
           List.generate(
             8 - sequenceLength,
@@ -49,7 +45,6 @@ abstract class EncryptedPacket<T> extends Packet {
 
     final packetData =
         data.buffer.asUint8List().sublist(offset).buffer.asByteData();
-
     return switch (PacketType.fromCode((firstByte >> 4).toUnsigned(8))) {
       PacketType.denied => ConnectionDeniedPacket.fromByteData(sequenceNumber),
       PacketType.challenge =>

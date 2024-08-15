@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:netcode_core/src/challange_token/lib.dart';
+import 'package:netcode_core/src/netcode_encryption.dart';
 import 'package:netcode_core/src/util/byte_manipulation_util.dart';
 
 import 'packet.dart';
@@ -56,13 +58,14 @@ class ConnectionChallengePacket
 }
 
 class ConnectionChallengePacketData {
-  const ConnectionChallengePacketData({
+  ConnectionChallengePacketData({
     required this.challengeTokenSequence,
-    required this.token,
+    required this.encryptedToken,
   });
 
   final int challengeTokenSequence;
-  final ChallengeToken token;
+  final Uint8List encryptedToken;
+  final _decryptedToken = Completer<ChallengeToken>();
 
   ByteData toByteData() {
     int offset = 0;
@@ -75,8 +78,7 @@ class ConnectionChallengePacketData {
     );
     offset += 8;
 
-    final tokenData = token.toByteData().buffer.asUint8List();
-    for (int i in tokenData) {
+    for (int i in encryptedToken) {
       data.setUint8(offset, i);
       offset++;
     }
@@ -87,9 +89,44 @@ class ConnectionChallengePacketData {
   factory ConnectionChallengePacketData.fromByteData(ByteData data) {
     return ConnectionChallengePacketData(
       challengeTokenSequence: data.getUint64(0, Endian.little),
-      token: ChallengeToken.fromByteData(
-        data.buffer.asUint8List().sublist(1).buffer.asByteData(),
-      ),
+      encryptedToken: data.buffer.asUint8List().sublist(8),
     );
+  }
+
+  static Future<ConnectionChallengePacketData> fromClearChallengeToken({
+    required ChallengeToken token,
+    required Uint8List nonce,
+    required Uint8List key,
+    required int challengeTokenSequence,
+  }) async {
+    final encrypted = await NetcodeEncryption.encryptChallengeToken(
+      token: token,
+      nonce: nonce,
+      encryptionKey: key,
+    );
+
+    return ConnectionChallengePacketData(
+      challengeTokenSequence: challengeTokenSequence,
+      encryptedToken: encrypted,
+    );
+  }
+
+  Future<ChallengeToken> decryptChallengeToken(
+    Uint8List nonce,
+    Uint8List key,
+  ) async {
+    if (_decryptedToken.isCompleted) {
+      return _decryptedToken.future;
+    }
+
+    final token = await NetcodeEncryption.decryptChallengeToken(
+      encryptedToken: encryptedToken,
+      nonce: nonce,
+      encryptionKey: key,
+    );
+
+    _decryptedToken.complete(token);
+
+    return token;
   }
 }
