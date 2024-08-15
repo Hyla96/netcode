@@ -2,10 +2,10 @@ import 'dart:typed_data';
 
 import 'packet.dart';
 
-class ConnectionResponsePacket extends EncryptedPacket {
+class ConnectionResponsePacket extends EncryptedPacket<ByteData> {
   const ConnectionResponsePacket({
     required super.sequenceNumber,
-    required super.packetData,
+    required super.data,
   });
 
   final type = PacketType.response;
@@ -15,7 +15,7 @@ class ConnectionResponsePacket extends EncryptedPacket {
   ) {
     return ConnectionResponsePacket(
       sequenceNumber: sequenceNumber,
-      packetData: data,
+      data: data,
     );
   }
 

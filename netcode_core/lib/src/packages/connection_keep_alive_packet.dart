@@ -2,10 +2,10 @@ import 'dart:typed_data';
 
 import 'packet.dart';
 
-class ConnectionKeepAlivePacket extends EncryptedPacket {
+class ConnectionKeepAlivePacket extends EncryptedPacket<ByteData> {
   const ConnectionKeepAlivePacket({
     required super.sequenceNumber,
-    required super.packetData,
+    required super.data,
   });
 
   final type = PacketType.keepAlive;
@@ -16,7 +16,7 @@ class ConnectionKeepAlivePacket extends EncryptedPacket {
   ) {
     return ConnectionKeepAlivePacket(
       sequenceNumber: sequenceNumber,
-      packetData: data,
+      data: data,
     );
   }
 

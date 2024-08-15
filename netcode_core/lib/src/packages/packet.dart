@@ -17,14 +17,14 @@ abstract class Packet {
   }
 }
 
-abstract class EncryptedPacket extends Packet {
+abstract class EncryptedPacket<T> extends Packet {
   const EncryptedPacket({
     required this.sequenceNumber,
-    required this.packetData,
+    required this.data,
   });
 
   final int sequenceNumber;
-  final ByteData packetData;
+  final T data;
   static EncryptedPacket? fromByteData(ByteData data) {
     int offset = 0;
 
@@ -36,6 +36,7 @@ abstract class EncryptedPacket extends Packet {
       data.buffer
           .asUint8List()
           .sublist(offset, offset + sequenceLength)
+          .reversed
           .toList()
         ..addAll(
           List.generate(

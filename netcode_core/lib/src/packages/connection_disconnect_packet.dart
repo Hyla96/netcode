@@ -2,10 +2,10 @@ import 'dart:typed_data';
 
 import 'packet.dart';
 
-class ConnectionDisconnectPacket extends EncryptedPacket {
+class ConnectionDisconnectPacket extends EncryptedPacket<ByteData> {
   const ConnectionDisconnectPacket({
-    required super.packetData,
     required super.sequenceNumber,
+    required super.data,
   });
 
   final type = PacketType.disconnect;
@@ -16,7 +16,7 @@ class ConnectionDisconnectPacket extends EncryptedPacket {
   ) {
     return ConnectionDisconnectPacket(
       sequenceNumber: sequenceNumber,
-      packetData: data,
+      data: data,
     );
   }
 

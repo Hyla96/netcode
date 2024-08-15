@@ -1,11 +1,13 @@
 import 'dart:typed_data';
 
+import 'package:netcode_core/src/challange_token/lib.dart';
+
 import 'packet.dart';
 
-class ConnectionChallengePacket extends EncryptedPacket {
+class ConnectionChallengePacket extends EncryptedPacket<ChallengeToken> {
   const ConnectionChallengePacket({
     required super.sequenceNumber,
-    required super.packetData,
+    required super.data,
   });
 
   final type = PacketType.challenge;
@@ -16,7 +18,7 @@ class ConnectionChallengePacket extends EncryptedPacket {
   ) {
     return ConnectionChallengePacket(
       sequenceNumber: sequenceNumber,
-      packetData: data,
+      data: ChallengeToken.fromByteData(data),
     );
   }
 

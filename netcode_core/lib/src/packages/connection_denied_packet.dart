@@ -1,27 +1,42 @@
 import 'dart:typed_data';
 
+import 'package:netcode_core/src/util/byte_manipulation_util.dart';
+
 import 'packet.dart';
 
 class ConnectionDeniedPacket extends EncryptedPacket {
   const ConnectionDeniedPacket({
     required super.sequenceNumber,
-    required super.packetData,
-  });
+  }) : super(data: null);
   final type = PacketType.denied;
 
   factory ConnectionDeniedPacket.fromByteData(
     int sequenceNumber,
-    ByteData data,
+    ByteData _,
   ) {
     return ConnectionDeniedPacket(
       sequenceNumber: sequenceNumber,
-      packetData: data,
     );
   }
 
   @override
   ByteData toByteData() {
-    // TODO: implement toByteData
-    throw UnimplementedError();
+    int offset = 0;
+    final sequenceNumberBytes =
+        ByteManipulationUtil.sequenceNumberToBytes(sequenceNumber);
+
+    final data = ByteData(1 + sequenceNumberBytes.lengthInBytes);
+    data.setUint8(
+      offset,
+      getFirstByte(sequenceNumberBytes.lengthInBytes),
+    );
+    offset++;
+
+    for (int i in sequenceNumberBytes.reversed) {
+      data.setUint8(offset, i);
+      offset++;
+    }
+
+    return data;
   }
 }
