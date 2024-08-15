@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:netcode_core/src/util/const.dart';
+import 'package:netcode_core/netcode_core.dart';
 
 class ChallengeToken {
   const ChallengeToken({

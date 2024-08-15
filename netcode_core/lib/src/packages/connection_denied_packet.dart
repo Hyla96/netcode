@@ -1,8 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:netcode_core/src/util/byte_manipulation_util.dart';
-
-import 'packet.dart';
+import 'package:netcode_core/netcode_core.dart';
 
 class ConnectionDeniedPacket extends EncryptedPacket {
   const ConnectionDeniedPacket({

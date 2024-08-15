@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:netcode_core/src/packages/lib.dart';
+import 'package:netcode_core/netcode_core.dart';
 
 class ByteManipulationUtil {
   static Uint8List sequenceNumberToBytes(int sequenceNumber) {

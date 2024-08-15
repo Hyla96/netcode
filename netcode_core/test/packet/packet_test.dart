@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:netcode_core/src/packages/lib.dart';
+import 'package:netcode_core/netcode_core.dart';
 import 'package:test/test.dart';
 
 void main() {

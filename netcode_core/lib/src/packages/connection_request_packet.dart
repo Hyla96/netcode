@@ -1,8 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:netcode_core/src/netcode_version.dart';
-
-import 'packet.dart';
+import 'package:netcode_core/netcode_core.dart';
 
 class ConnectionRequestPacket extends Packet {
   const ConnectionRequestPacket({

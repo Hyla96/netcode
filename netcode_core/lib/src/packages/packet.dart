@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'lib.dart';
+import 'package:netcode_core/netcode_core.dart';
 
 abstract class Packet {
   const Packet();

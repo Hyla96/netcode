@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:netcode_core/src/netcode_version.dart';
+import 'package:netcode_core/netcode_core.dart';
 
 class AssociatedData {
   const AssociatedData({

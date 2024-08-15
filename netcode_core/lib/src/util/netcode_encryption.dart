@@ -1,11 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:netcode_core/src/util/const.dart';
-
-import 'challange_token/lib.dart';
-import 'connect_token/lib.dart';
-import 'netcode_version.dart';
+import 'package:netcode_core/netcode_core.dart';
 
 class NetcodeEncryption {
   static Future<Uint8List> encryptPrivateToken({

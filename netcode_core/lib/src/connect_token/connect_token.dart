@@ -2,10 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:netcode_core/src/address_endpoint.dart';
-import 'package:netcode_core/src/connect_token/lib.dart';
-import 'package:netcode_core/src/netcode_encryption.dart';
-import 'package:netcode_core/src/netcode_version.dart';
+import 'package:netcode_core/netcode_core.dart';
 
 class ConnectToken {
   ConnectToken({

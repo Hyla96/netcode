@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:netcode_core/src/address_endpoint.dart';
+import 'package:netcode_core/src/util/address_endpoint.dart';
 import 'package:netcode_core/src/util/const.dart';
 
 class PrivateToken {

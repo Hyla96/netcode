@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'packet.dart';
+import 'package:netcode_core/netcode_core.dart';
 
 class ConnectionPayloadPacket extends EncryptedPacket<ByteData> {
   const ConnectionPayloadPacket({

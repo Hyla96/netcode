@@ -2,10 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:netcode_core/src/address_endpoint.dart';
-import 'package:netcode_core/src/challange_token/challenge_token.dart';
-import 'package:netcode_core/src/connect_token/lib.dart';
-import 'package:netcode_core/src/netcode_encryption.dart';
+import 'package:netcode_core/netcode_core.dart';
 import 'package:test/test.dart';
 
 void main() {
