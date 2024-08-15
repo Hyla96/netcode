@@ -9,7 +9,6 @@ abstract class Packet {
 
   ByteData toByteData();
   static Packet? fromByteData(ByteData data) {
-    print(data.buffer.asUint8List());
     final type = PacketType.fromCode(data.getUint8(0).toUnsigned(8));
     if (type == PacketType.request) {
       return ConnectionRequestPacket.fromByteData(data);
@@ -33,23 +32,21 @@ abstract class EncryptedPacket extends Packet {
     final sequenceLength = firstByte.toUnsigned(4);
     offset++;
 
-    final sequence = Uint8List(8);
-
-    final s =
-        data.buffer.asUint8List().sublist(offset, offset + sequenceLength);
-
-    for (int i = 0; i < sequence.length; i++) {
-      if (i < s.length) {
-        sequence[i] = s[i];
-      }
-    }
-
+    final sequenceNumber = Uint8List.fromList(
+      data.buffer
+          .asUint8List()
+          .sublist(offset, offset + sequenceLength)
+          .toList()
+        ..addAll(
+          List.generate(
+            8 - sequenceLength,
+            (_) => 0,
+          ),
+        ),
+    ).buffer.asByteData().getUint64(0, Endian.little);
     offset += sequenceLength;
 
-    final sequenceNumber =
-        sequence.buffer.asByteData().getUint64(0, Endian.little);
-
-    final packetData = data.buffer.asByteData(sequenceLength);
+    final packetData = data.buffer.asByteData(offset);
 
     return switch (PacketType.fromCode((firstByte >> 4).toUnsigned(8))) {
       PacketType.denied =>
