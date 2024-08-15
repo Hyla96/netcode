@@ -2,16 +2,18 @@ import 'dart:typed_data';
 
 import 'package:netcode_core/netcode_core.dart';
 
-class ConnectionDisconnectPacket extends EncryptedPacket {
-  const ConnectionDisconnectPacket({
+class ConnectionDeniedPacket extends EncryptedPacket<EmptyPacketData> {
+  const ConnectionDeniedPacket({
     required super.sequenceNumber,
-  }) : super(data: null);
-  final type = PacketType.disconnect;
+  }) : super(
+          data: const EmptyPacketData(),
+        );
+  final type = PacketType.denied;
 
-  factory ConnectionDisconnectPacket.fromByteData(
+  factory ConnectionDeniedPacket.fromByteData(
     int sequenceNumber,
   ) {
-    return ConnectionDisconnectPacket(
+    return ConnectionDeniedPacket(
       sequenceNumber: sequenceNumber,
     );
   }

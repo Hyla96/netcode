@@ -17,7 +17,7 @@ abstract class Packet {
   }
 }
 
-abstract class EncryptedPacket<T> extends Packet {
+abstract class EncryptedPacket<T extends PacketData> extends Packet {
   const EncryptedPacket({
     required this.sequenceNumber,
     required this.data,
@@ -60,39 +60,33 @@ abstract class EncryptedPacket<T> extends Packet {
       _ => null,
     };
   }
-}
 
-enum PacketType {
-  request,
-  denied,
-  challenge,
-  response,
-  keepAlive,
-  payload,
-  disconnect;
+  ByteData toByteData() {
+    int offset = 0;
 
-  static PacketType? fromCode(int value) {
-    return switch (value) {
-      0 => PacketType.request,
-      1 => PacketType.denied,
-      2 => PacketType.challenge,
-      3 => PacketType.response,
-      4 => PacketType.keepAlive,
-      5 => PacketType.payload,
-      6 => PacketType.disconnect,
-      _ => null
-    };
-  }
+    final packetData = this.data.toByteData().buffer.asUint8List();
+    final sequenceNumberBytes =
+        ByteManipulationUtil.sequenceNumberToBytes(sequenceNumber);
 
-  int get code {
-    return switch (this) {
-      PacketType.request => 0,
-      PacketType.denied => 1,
-      PacketType.challenge => 2,
-      PacketType.response => 3,
-      PacketType.keepAlive => 4,
-      PacketType.payload => 5,
-      PacketType.disconnect => 6,
-    };
+    final data = ByteData(
+        1 + sequenceNumberBytes.lengthInBytes + packetData.lengthInBytes);
+
+    data.setUint8(
+      offset,
+      getFirstByte(sequenceNumberBytes.lengthInBytes),
+    );
+    offset++;
+
+    for (int i in sequenceNumberBytes.reversed) {
+      data.setUint8(offset, i);
+      offset++;
+    }
+
+    for (final p in packetData) {
+      data.setUint8(offset, p);
+      offset++;
+    }
+
+    return data;
   }
 }

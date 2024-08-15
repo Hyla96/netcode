@@ -2,7 +2,11 @@ import 'dart:typed_data';
 
 import 'package:netcode_core/netcode_core.dart';
 
-class ConnectionPayloadPacket extends EncryptedPacket<ByteData> {
+typedef PayloadPacketDataParser = T Function<T extends PayloadPacketData>(
+    ByteData);
+
+class ConnectionPayloadPacket<T extends PayloadPacketData>
+    extends EncryptedPacket<T> {
   const ConnectionPayloadPacket({
     required super.sequenceNumber,
     required super.data,
@@ -12,11 +16,12 @@ class ConnectionPayloadPacket extends EncryptedPacket<ByteData> {
 
   factory ConnectionPayloadPacket.fromByteData(
     int sequenceNumber,
-    ByteData data,
-  ) {
+    ByteData data, {
+    PayloadPacketDataParser? parser,
+  }) {
     return ConnectionPayloadPacket(
       sequenceNumber: sequenceNumber,
-      data: data,
+      data: parser?.call(data) ?? PayloadPacketData(data) as T,
     );
   }
 

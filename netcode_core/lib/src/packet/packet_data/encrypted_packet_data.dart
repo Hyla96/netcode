@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:netcode_core/netcode_core.dart';
 
-class ConnectionChallengePacketData {
+class ConnectionChallengePacketData extends PacketData {
   ConnectionChallengePacketData({
     required this.challengeTokenSequence,
     required this.encryptedToken,
@@ -35,7 +35,7 @@ class ConnectionChallengePacketData {
   factory ConnectionChallengePacketData.fromByteData(ByteData data) {
     return ConnectionChallengePacketData(
       challengeTokenSequence: data.getUint64(0, Endian.little),
-      encryptedToken: data.buffer.asUint8List().sublist(8),
+      encryptedToken: data.buffer.asUint8List(8),
     );
   }
 

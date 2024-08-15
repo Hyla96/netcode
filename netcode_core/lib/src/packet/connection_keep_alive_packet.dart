@@ -2,27 +2,34 @@ import 'dart:typed_data';
 
 import 'package:netcode_core/netcode_core.dart';
 
-class ConnectionDeniedPacket extends EncryptedPacket {
-  const ConnectionDeniedPacket({
+class ConnectionKeepAlivePacket extends EncryptedPacket<KeepAlivePackageData> {
+  const ConnectionKeepAlivePacket({
     required super.sequenceNumber,
-  }) : super(data: null);
-  final type = PacketType.denied;
+    required super.data,
+  });
 
-  factory ConnectionDeniedPacket.fromByteData(
+  final type = PacketType.keepAlive;
+
+  factory ConnectionKeepAlivePacket.fromByteData(
     int sequenceNumber,
+    ByteData data,
   ) {
-    return ConnectionDeniedPacket(
+    return ConnectionKeepAlivePacket(
       sequenceNumber: sequenceNumber,
+      data: KeepAlivePackageData.fromByteData(data),
     );
   }
 
   @override
   ByteData toByteData() {
     int offset = 0;
+
+    final packetData = this.data.toByteData().buffer.asUint8List();
     final sequenceNumberBytes =
         ByteManipulationUtil.sequenceNumberToBytes(sequenceNumber);
 
-    final data = ByteData(1 + sequenceNumberBytes.lengthInBytes);
+    final data = ByteData(1 + sequenceNumberBytes.lengthInBytes + 8);
+
     data.setUint8(
       offset,
       getFirstByte(sequenceNumberBytes.lengthInBytes),
@@ -31,6 +38,11 @@ class ConnectionDeniedPacket extends EncryptedPacket {
 
     for (int i in sequenceNumberBytes.reversed) {
       data.setUint8(offset, i);
+      offset++;
+    }
+
+    for (final p in packetData) {
+      data.setUint8(offset, p);
       offset++;
     }
 
