@@ -12,7 +12,6 @@ class ConnectionDeniedPacket extends EncryptedPacket {
 
   factory ConnectionDeniedPacket.fromByteData(
     int sequenceNumber,
-    ByteData _,
   ) {
     return ConnectionDeniedPacket(
       sequenceNumber: sequenceNumber,

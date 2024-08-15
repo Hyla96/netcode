@@ -47,11 +47,11 @@ abstract class EncryptedPacket<T> extends Packet {
     ).buffer.asByteData().getUint64(0, Endian.little);
     offset += sequenceLength;
 
-    final packetData = data.buffer.asByteData(offset);
+    final packetData =
+        data.buffer.asUint8List().sublist(offset).buffer.asByteData();
 
     return switch (PacketType.fromCode((firstByte >> 4).toUnsigned(8))) {
-      PacketType.denied =>
-        ConnectionDeniedPacket.fromByteData(sequenceNumber, packetData),
+      PacketType.denied => ConnectionDeniedPacket.fromByteData(sequenceNumber),
       PacketType.challenge =>
         ConnectionChallengePacket.fromByteData(sequenceNumber, packetData),
       PacketType.response =>
