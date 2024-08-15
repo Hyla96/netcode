@@ -29,7 +29,7 @@ abstract class EncryptedPacket<T> extends Packet {
     int offset = 0;
 
     final firstByte = data.getUint8(0);
-    final sequenceLength = firstByte.toUnsigned(4);
+    final sequenceLength = firstByte & 0x0F;
     offset++;
 
     final sequenceNumber = Uint8List.fromList(
