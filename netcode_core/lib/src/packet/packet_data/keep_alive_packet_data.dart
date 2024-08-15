@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:netcode_core/netcode_core.dart';
 
-class KeepAlivePackageData extends PacketData {
+class KeepAlivePackageData extends EncryptedPacketData {
   const KeepAlivePackageData(this.clientIndex, this.maxClients);
 
   final int clientIndex;

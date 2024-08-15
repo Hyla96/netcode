@@ -17,7 +17,7 @@ abstract class Packet {
   }
 }
 
-abstract class EncryptedPacket<T extends PacketData> extends Packet {
+abstract class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
   const EncryptedPacket({
     required this.sequenceNumber,
     required this.data,
