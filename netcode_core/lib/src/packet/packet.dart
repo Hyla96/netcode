@@ -99,10 +99,29 @@ class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
   }
 
   static EncryptedPacket? fromByteData(ByteData data) {
+    if (data.lengthInBytes < 18) {
+      return null;
+    }
+
     int offset = 0;
 
     final firstByte = data.getUint8(0);
     final sequenceLength = firstByte & 0x0F;
+    final codeByte = firstByte >> 4;
+
+    if (codeByte > 7 ||
+        sequenceLength < 1 ||
+        sequenceLength > 8 ||
+        (data.lengthInBytes < 1 + sequenceLength + 16)) {
+      return null;
+    }
+
+    final type = PacketType.fromCode(codeByte);
+
+    if (type == null) {
+      return null;
+    }
+
     offset++;
 
     final sequenceNumber = Uint8List.fromList(
@@ -118,10 +137,21 @@ class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
 
     final packetData =
         data.buffer.asUint8List().sublist(offset).buffer.asByteData();
-    final type = PacketType.fromCode((firstByte >> 4));
 
-    if (type == null) {
-      return null;
+    switch (type) {
+      case PacketType.disconnect:
+      case PacketType.denied:
+        if (packetData.lengthInBytes != 0) return null;
+      case PacketType.challenge:
+      case PacketType.response:
+        if (packetData.lengthInBytes != 308) return null;
+      case PacketType.keepAlive:
+        if (packetData.lengthInBytes != 8) return null;
+      case PacketType.payload:
+        if (packetData.lengthInBytes < 1 || packetData.lengthInBytes > 1200)
+          return null;
+      case PacketType.request:
+        return null;
     }
 
     return EncryptedPacket(
