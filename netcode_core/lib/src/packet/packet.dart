@@ -100,6 +100,7 @@ class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
 
   static EncryptedPacket? fromByteData(ByteData data) {
     if (data.lengthInBytes < 18) {
+      NetcoreLogger.warning('Packet length not valid');
       return null;
     }
 
@@ -109,16 +110,22 @@ class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
     final sequenceLength = firstByte & 0x0F;
     final codeByte = firstByte >> 4;
 
-    if (codeByte > 7 ||
-        sequenceLength < 1 ||
-        sequenceLength > 8 ||
-        (data.lengthInBytes < 1 + sequenceLength + 16)) {
+    if (sequenceLength < 1 || sequenceLength > 8) {
+      NetcoreLogger.warning(
+          'Sequence number length not valid: $sequenceLength');
+      return null;
+    } else if (codeByte > 7) {
+      NetcoreLogger.warning('Packet type not valid: $codeByte');
+      return null;
+    } else if (data.lengthInBytes < 1 + sequenceLength + 16) {
+      NetcoreLogger.warning('Packet length not valid: $sequenceLength');
       return null;
     }
 
     final type = PacketType.fromCode(codeByte);
 
     if (type == null) {
+      NetcoreLogger.warning('Packet type not valid');
       return null;
     }
 
@@ -141,15 +148,30 @@ class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
     switch (type) {
       case PacketType.disconnect:
       case PacketType.denied:
-        if (packetData.lengthInBytes != 0) return null;
+        if (packetData.lengthInBytes != 0) {
+          NetcoreLogger.warning(
+              'Packet data length not valid for type ${type.name}: ${packetData.lengthInBytes}');
+          return null;
+        }
       case PacketType.challenge:
       case PacketType.response:
-        if (packetData.lengthInBytes != 308) return null;
-      case PacketType.keepAlive:
-        if (packetData.lengthInBytes != 8) return null;
-      case PacketType.payload:
-        if (packetData.lengthInBytes < 1 || packetData.lengthInBytes > 1200)
+        if (packetData.lengthInBytes != 308) {
+          NetcoreLogger.warning(
+              'Packet data length not valid for type ${type.name}: ${packetData.lengthInBytes}');
           return null;
+        }
+      case PacketType.keepAlive:
+        if (packetData.lengthInBytes != 8) {
+          NetcoreLogger.warning(
+              'Packet data length not valid for type ${type.name}: ${packetData.lengthInBytes}');
+          return null;
+        }
+      case PacketType.payload:
+        if (packetData.lengthInBytes < 1 || packetData.lengthInBytes > 1200) {
+          NetcoreLogger.warning(
+              'Packet data length not valid for type ${type.name}: ${packetData.lengthInBytes}');
+          return null;
+        }
       case PacketType.request:
         return null;
     }
