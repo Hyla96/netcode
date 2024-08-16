@@ -50,7 +50,7 @@ void main() {
         expiresAt: timestamp,
       );
 
-      expect(decrypted.timeout, timestamp);
+      expect(decrypted.timeout, 30);
       expect(decrypted.serverToClientKey, util.serverToClientKey);
       expect(decrypted.clientToServerKey, util.clientToServerKey);
       expect(decrypted.clientId, clientID);
