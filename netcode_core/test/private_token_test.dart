@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:netcode_core/netcode_core.dart';
 import 'package:test/test.dart';
 
+import 'util/test_util.dart';
+
 void main() {
   const clientId = 0x1;
   const timeout = 0x1E;
@@ -86,5 +88,21 @@ void main() {
 
       expect(data.buffer.asUint8List(), buffer.buffer.asUint8List());
     });
+  });
+
+  test('Parsing private token', () {
+    final util = TestUtil();
+
+    final token = util.getPrivateToken(clientId: 283);
+
+    final data = token.toByteData();
+
+    final parsed = PrivateToken.fromByteData(data);
+
+    expect(parsed.clientId, 283);
+    expect(parsed.userData, token.userData);
+    expect(parsed.serverToClientKey, util.serverToClientKey);
+    expect(parsed.clientToServerKey, util.clientToServerKey);
+    expect(parsed.timeout, token.timeout);
   });
 }

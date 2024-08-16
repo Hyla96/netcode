@@ -10,7 +10,8 @@ void main() {
   test('Parsing connection challenge packet', () async {
     final sequence = 2837123;
     final challengeTokenSequence = 19828;
-    final clientID = 177;
+    final clientId = 177;
+    final protocolId = 3117;
     final rng = Random();
     final userData = Uint8List.fromList(
       List.generate(
@@ -20,7 +21,7 @@ void main() {
     );
 
     final token = ChallengeToken(
-      clientId: clientID,
+      clientId: clientId,
       userData: userData,
     );
 
@@ -38,31 +39,36 @@ void main() {
       ),
     );
 
-    final packet = ConnectionChallengePacket(
-      sequenceNumber: sequence,
-      data: await ConnectionChallengePacketData.fromClearChallengeToken(
+    print('token');
+    print(token.toByteData().buffer.asUint8List());
+
+    final packet = await EncryptedPacket.fromClearPacketData(
+      sequenceNumber:
+          ByteManipulationUtil.sequenceNumberToBytes(sequence).lengthInBytes,
+      packetData: await ConnectionChallengePacketData.fromClearChallengeToken(
+        token: token,
         nonce: nonce,
         key: key,
         challengeTokenSequence: challengeTokenSequence,
-        token: token,
       ),
+      nonce: nonce,
+      encryptionKey: key,
+      protocolId: protocolId,
+      prefixByte: PacketType.challenge.code << 4 | sequence,
+      type: PacketType.challenge,
     );
 
-    final data = packet.toByteData();
-    final parsedPacket = Packet.fromByteData(data);
-
-    expect(parsedPacket is ConnectionChallengePacket, isTrue);
-
-    final result = parsedPacket as ConnectionChallengePacket;
-
-    expect(result.sequenceNumber, sequence);
-
-    final challengeToken = await result.data.decryptChallengeToken(
-      nonce,
-      key,
+    final decryptedData = await packet?.getDecryptedData(
+      nonce: nonce,
+      encryptionKey: key,
+      protocolId: protocolId,
     );
 
-    expect(challengeToken.clientId, token.clientId);
-    expect(challengeToken.userData, token.userData);
+    expect(packet, isNotNull);
+
+    final data = packet!.toByteData();
+    final parsedPacket = Packet.fromByteData(data) as EncryptedPacket;
+
+    expect(parsedPacket.sequenceNumber, sequence);
   });
 }

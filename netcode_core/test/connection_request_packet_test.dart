@@ -1,9 +1,7 @@
-import 'dart:io';
-import 'dart:math';
-import 'dart:typed_data';
-
 import 'package:netcode_core/netcode_core.dart';
 import 'package:test/test.dart';
+
+import 'util/test_util.dart';
 
 void main() {
   group('Connection request packet', () {
@@ -15,68 +13,18 @@ void main() {
       final timestamp =
           (DateTime.now().add(Duration(hours: 6)).millisecondsSinceEpoch / 1000)
               .floor();
-      final rng = Random();
-      final clientToServerKey = Uint8List.fromList(
-        List.generate(
-          32,
-          (_) => rng.nextInt(256),
-        ),
-      );
+      final util = TestUtil();
 
-      final serverToClientKey = Uint8List.fromList(
-        List.generate(
-          32,
-          (_) => rng.nextInt(256),
-        ),
-      );
-
-      final userData = Uint8List.fromList(
-        List.generate(
-          256,
-          (_) => rng.nextInt(256),
-        ),
-      );
-
-      final token = PrivateToken(
+      final encrypted = await util.getRandomEncryptedPrivateToken(
         clientId: clientID,
-        timeout: 30,
-        serverAddresses: [
-          AddressEndpoint(
-            InternetAddress("172.16.254.1"),
-            80,
-          ),
-        ],
-        clientToServerKey: clientToServerKey,
-        serverToClientKey: serverToClientKey,
-        userData: userData,
-      );
-
-      final nonce = Uint8List.fromList(
-        List.generate(
-          24,
-          (_) => rng.nextInt(256),
-        ),
-      );
-
-      final key = Uint8List.fromList(
-        List.generate(
-          32,
-          (_) => rng.nextInt(256),
-        ),
-      );
-
-      final encrypted = await NetcodeEncryption.encryptPrivateToken(
-        token: token,
         protocolId: protocolID,
-        nonce: nonce,
-        encryptionKey: key,
-        expiresAt: timestamp,
+        timestamp: timestamp,
       );
 
       final packet = ConnectionRequestPacket(
         protocolId: protocolID,
         expiresAt: timestamp,
-        nonce: nonce,
+        nonce: util.privateTokenNonce,
         encryptedPrivateToken: encrypted,
       );
 
@@ -97,16 +45,16 @@ void main() {
       final decrypted = await NetcodeEncryption.decryptPrivateToken(
         encryptedToken: casted.encryptedPrivateToken,
         protocolId: protocolID,
-        nonce: nonce,
-        encryptionKey: key,
+        nonce: util.privateTokenNonce,
+        encryptionKey: util.privateTokenKey,
         expiresAt: timestamp,
       );
 
-      expect(decrypted.timeout, token.timeout);
-      expect(decrypted.serverToClientKey, token.serverToClientKey);
-      expect(decrypted.clientToServerKey, token.clientToServerKey);
-      expect(decrypted.clientId, token.clientId);
-      expect(decrypted.userData, token.userData);
+      expect(decrypted.timeout, timestamp);
+      expect(decrypted.serverToClientKey, util.serverToClientKey);
+      expect(decrypted.clientToServerKey, util.clientToServerKey);
+      expect(decrypted.clientId, clientID);
+      expect(decrypted.userData, util.userData);
     });
   });
 }

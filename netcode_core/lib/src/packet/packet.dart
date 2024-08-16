@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:netcode_core/netcode_core.dart';
 
 abstract class Packet {
-  const Packet();
+  const Packet({
+    required this.type,
+  });
 
-  PacketType get type;
+  final PacketType type;
 
   ByteData toByteData();
   static Packet? fromByteData(ByteData data) {
@@ -17,14 +20,85 @@ abstract class Packet {
   }
 }
 
-abstract class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
-  const EncryptedPacket({
+class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
+  EncryptedPacket({
     required this.sequenceNumber,
-    required this.data,
+    required this.encryptedData,
+    required super.type,
   });
 
   final int sequenceNumber;
-  final T data;
+  final ByteData encryptedData;
+  final _decryptedData = Completer<EncryptedPacketData>();
+
+  Future<EncryptedPacketData?> getDecryptedData({
+    required Uint8List nonce,
+    required Uint8List encryptionKey,
+    required int protocolId,
+  }) async {
+    if (_decryptedData.isCompleted) {
+      return _decryptedData.future;
+    }
+
+    final sequenceNumberBytes =
+        ByteManipulationUtil.sequenceNumberToBytes(sequenceNumber);
+
+    final firstByte = getFirstByte(sequenceNumberBytes.lengthInBytes);
+
+    final decrypted = (await NetcodeEncryption.decryptPacketData(
+      encryptedData: encryptedData.buffer.asUint8List(),
+      nonce: nonce,
+      encryptionKey: encryptionKey,
+      protocolId: protocolId,
+      prefixByte: firstByte,
+    ))
+        .buffer
+        .asByteData();
+
+    final parsed = switch (PacketType.fromCode((firstByte >> 4))) {
+      PacketType.denied => EmptyPacketData(),
+      PacketType.challenge =>
+        ConnectionChallengePacketData.fromByteData(decrypted),
+      PacketType.response =>
+        ConnectionChallengePacketData.fromByteData(decrypted),
+      PacketType.keepAlive => KeepAlivePackageData.fromByteData(decrypted),
+      PacketType.payload => PayloadPacketData(decrypted),
+      PacketType.disconnect => EmptyPacketData(),
+      _ => null,
+    };
+
+    if (parsed != null) {
+      _decryptedData.complete(parsed);
+    }
+
+    return parsed;
+  }
+
+  static Future<EncryptedPacket<T>>?
+      fromClearPacketData<T extends EncryptedPacketData>({
+    required T packetData,
+    required Uint8List nonce,
+    required Uint8List encryptionKey,
+    required int sequenceNumber,
+    required int protocolId,
+    required int prefixByte,
+    required PacketType type,
+  }) async {
+    final encryptedData = await NetcodeEncryption.encryptPacketData(
+      data: packetData.toByteData().buffer.asUint8List(),
+      nonce: nonce,
+      encryptionKey: encryptionKey,
+      protocolId: protocolId,
+      prefixByte: prefixByte,
+    );
+
+    return EncryptedPacket(
+      sequenceNumber: sequenceNumber,
+      encryptedData: encryptedData.buffer.asByteData(),
+      type: type,
+    );
+  }
+
   static EncryptedPacket? fromByteData(ByteData data) {
     int offset = 0;
 
@@ -45,26 +119,24 @@ abstract class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
 
     final packetData =
         data.buffer.asUint8List().sublist(offset).buffer.asByteData();
-    return switch (PacketType.fromCode((firstByte >> 4).toUnsigned(8))) {
-      PacketType.denied => ConnectionDeniedPacket.fromByteData(sequenceNumber),
-      PacketType.challenge =>
-        ConnectionChallengePacket.fromByteData(sequenceNumber, packetData),
-      PacketType.response =>
-        ConnectionResponsePacket.fromByteData(sequenceNumber, packetData),
-      PacketType.keepAlive =>
-        ConnectionKeepAlivePacket.fromByteData(sequenceNumber, packetData),
-      PacketType.payload =>
-        ConnectionPayloadPacket.fromByteData(sequenceNumber, packetData),
-      PacketType.disconnect =>
-        ConnectionDisconnectPacket.fromByteData(sequenceNumber),
-      _ => null,
-    };
+    final type = PacketType.fromCode((firstByte >> 4));
+
+    if (type == null) {
+      return null;
+    }
+
+    return EncryptedPacket(
+      sequenceNumber: sequenceNumber,
+      encryptedData: packetData,
+      type: type,
+    );
   }
 
   ByteData toByteData() {
     int offset = 0;
 
-    final packetData = this.data.toByteData().buffer.asUint8List();
+    final packetData = encryptedData.buffer.asUint8List();
+
     final sequenceNumberBytes =
         ByteManipulationUtil.sequenceNumberToBytes(sequenceNumber);
 
@@ -77,15 +149,19 @@ abstract class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
     );
     offset++;
 
-    for (int i in sequenceNumberBytes.reversed) {
-      data.setUint8(offset, i);
-      offset++;
-    }
+    data.buffer.asUint8List().setRange(
+          offset,
+          offset + sequenceNumberBytes.lengthInBytes,
+          sequenceNumberBytes.reversed,
+        );
+    offset += sequenceNumberBytes.lengthInBytes;
 
-    for (final p in packetData) {
-      data.setUint8(offset, p);
-      offset++;
-    }
+    data.buffer.asUint8List().setRange(
+          offset,
+          offset + packetData.lengthInBytes,
+          packetData,
+        );
+    offset += packetData.lengthInBytes;
 
     return data;
   }

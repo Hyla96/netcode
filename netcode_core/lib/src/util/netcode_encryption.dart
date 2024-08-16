@@ -28,7 +28,7 @@ class NetcodeEncryption {
           .sublist(0, PRIVATE_TOKEN_MAX_LENGTH - PRIVATE_TOKEN_HMAC_LENGTH),
       secretKey: SecretKey(encryptionKey),
       nonce: nonce,
-      aad: AssociatedData(
+      aad: PrivateTokenAssociatedData(
         protocolId: protocolId,
         expiresAt: expiresAt,
         version: version,
@@ -79,7 +79,7 @@ class NetcodeEncryption {
         ),
       ),
       secretKey: SecretKey(encryptionKey),
-      aad: AssociatedData(
+      aad: PrivateTokenAssociatedData(
         protocolId: protocolId,
         expiresAt: expiresAt,
         version: version,
@@ -164,5 +164,64 @@ class NetcodeEncryption {
         Uint8List.fromList(cleartext).buffer,
       ),
     );
+  }
+
+  static Future<Uint8List> decryptPacketData({
+    required Uint8List encryptedData,
+    required Uint8List nonce,
+    required Uint8List encryptionKey,
+    required int protocolId,
+    required int prefixByte,
+    NetcodeVersion version = NetcodeVersion.v1_02,
+  }) async {
+    final algorithm = Chacha20.poly1305Aead();
+
+    final cleartext = await algorithm.decrypt(
+      SecretBox(
+        encryptedData.sublist(
+          0,
+          encryptedData.lengthInBytes - ENCRYPTED_TOKEN_MAC_LENGTH,
+        ),
+        nonce: nonce,
+        mac: Mac(
+          encryptedData.sublist(
+            encryptedData.lengthInBytes - ENCRYPTED_TOKEN_MAC_LENGTH,
+            encryptedData.lengthInBytes,
+          ),
+        ),
+      ),
+      aad: EncryptedPacketAssociatedData(
+        protocolId: protocolId,
+        prefixByte: prefixByte,
+        version: version,
+      ).toByteData().buffer.asUint8List(),
+      secretKey: SecretKey(encryptionKey),
+    );
+
+    return Uint8List.fromList(cleartext);
+  }
+
+  static Future<Uint8List> encryptPacketData({
+    required Uint8List data,
+    required Uint8List nonce,
+    required Uint8List encryptionKey,
+    required int protocolId,
+    required int prefixByte,
+    NetcodeVersion version = NetcodeVersion.v1_02,
+  }) async {
+    final algorithm = Chacha20.poly1305Aead();
+
+    final secretBox = await algorithm.encrypt(
+      data,
+      secretKey: SecretKey(encryptionKey),
+      nonce: nonce,
+      aad: EncryptedPacketAssociatedData(
+        protocolId: protocolId,
+        version: version,
+        prefixByte: prefixByte,
+      ).toByteData().buffer.asUint8List(),
+    );
+
+    return secretBox.concatenation(nonce: false);
   }
 }

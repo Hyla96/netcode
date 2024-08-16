@@ -2,8 +2,8 @@ import 'dart:typed_data';
 
 import 'package:netcode_core/netcode_core.dart';
 
-class AssociatedData {
-  const AssociatedData({
+class PrivateTokenAssociatedData {
+  const PrivateTokenAssociatedData({
     this.version = NetcodeVersion.v1_02,
     required this.protocolId,
     required this.expiresAt,
@@ -13,7 +13,7 @@ class AssociatedData {
   final int protocolId;
   final int expiresAt;
 
-  factory AssociatedData.fromByteData(ByteData data) {
+  factory PrivateTokenAssociatedData.fromByteData(ByteData data) {
     final uint8list = data.buffer.asUint8List();
 
     int offset = 0;
@@ -28,7 +28,7 @@ class AssociatedData {
     final timestamp = data.getUint64(offset, Endian.little);
     offset += 8;
 
-    return AssociatedData(
+    return PrivateTokenAssociatedData(
       version: versionEnum,
       protocolId: protocolID,
       expiresAt: timestamp,

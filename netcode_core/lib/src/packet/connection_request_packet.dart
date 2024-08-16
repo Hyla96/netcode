@@ -9,8 +9,7 @@ class ConnectionRequestPacket extends Packet {
     required this.nonce,
     required this.encryptedPrivateToken,
     this.version = NetcodeVersion.v1_02,
-  });
-  final type = PacketType.request;
+  }) : super(type: PacketType.request);
 
   final NetcodeVersion version;
 
