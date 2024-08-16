@@ -28,7 +28,6 @@ void main() {
     final packet = await EncryptedPacket.fromClearPacketData(
       sequenceNumber: sequence,
       packetData: packetData,
-      nonce: util.challengeTokenNonce,
       encryptionKey: util.challengeTokenKey,
       protocolId: protocolId,
       prefixByte: prefixByte,
@@ -38,7 +37,6 @@ void main() {
     expect(packet, isNotNull);
 
     final data = await packet!.getDecryptedData(
-      nonce: util.challengeTokenNonce,
       encryptionKey: util.challengeTokenKey,
       protocolId: protocolId,
     ) as ConnectionChallengePacketData;

@@ -168,13 +168,20 @@ class NetcodeEncryption {
 
   static Future<Uint8List> decryptPacketData({
     required Uint8List encryptedData,
-    required Uint8List nonce,
+    required Uint8List sequenceNumber,
     required Uint8List encryptionKey,
     required int protocolId,
     required int prefixByte,
     NetcodeVersion version = NetcodeVersion.v1_02,
   }) async {
     final algorithm = Chacha20.poly1305Aead();
+
+    final nonce = Uint8List(12)
+      ..setRange(
+        0,
+        sequenceNumber.lengthInBytes,
+        sequenceNumber,
+      );
 
     final cleartext = await algorithm.decrypt(
       SecretBox(
@@ -203,13 +210,20 @@ class NetcodeEncryption {
 
   static Future<Uint8List> encryptPacketData({
     required Uint8List data,
-    required Uint8List nonce,
+    required Uint8List sequenceNumber,
     required Uint8List encryptionKey,
     required int protocolId,
     required int prefixByte,
     NetcodeVersion version = NetcodeVersion.v1_02,
   }) async {
     final algorithm = Chacha20.poly1305Aead();
+
+    final nonce = Uint8List(12)
+      ..setRange(
+        0,
+        sequenceNumber.lengthInBytes,
+        sequenceNumber,
+      );
 
     final secretBox = await algorithm.encrypt(
       data,

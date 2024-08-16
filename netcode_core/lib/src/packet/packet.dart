@@ -32,7 +32,6 @@ class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
   final _decryptedData = Completer<EncryptedPacketData>();
 
   Future<EncryptedPacketData?> getDecryptedData({
-    required Uint8List nonce,
     required Uint8List encryptionKey,
     required int protocolId,
   }) async {
@@ -47,7 +46,7 @@ class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
 
     final decrypted = (await NetcodeEncryption.decryptPacketData(
       encryptedData: encryptedData.buffer.asUint8List(),
-      nonce: nonce,
+      sequenceNumber: sequenceNumberBytes,
       encryptionKey: encryptionKey,
       protocolId: protocolId,
       prefixByte: firstByte,
@@ -77,7 +76,6 @@ class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
   static Future<EncryptedPacket<T>>?
       fromClearPacketData<T extends EncryptedPacketData>({
     required T packetData,
-    required Uint8List nonce,
     required Uint8List encryptionKey,
     required int sequenceNumber,
     required int protocolId,
@@ -86,7 +84,8 @@ class EncryptedPacket<T extends EncryptedPacketData> extends Packet {
   }) async {
     final encryptedData = await NetcodeEncryption.encryptPacketData(
       data: packetData.toByteData().buffer.asUint8List(),
-      nonce: nonce,
+      sequenceNumber:
+          ByteManipulationUtil.sequenceNumberToBytes(sequenceNumber),
       encryptionKey: encryptionKey,
       protocolId: protocolId,
       prefixByte: prefixByte,
