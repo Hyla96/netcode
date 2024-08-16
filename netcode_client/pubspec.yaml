@@ -8,6 +8,8 @@ environment:
   sdk: ^3.5.0
 
 dependencies:
+  netcode_core:
+    path: ../netcode_core
 
 dev_dependencies:
   lints: ^4.0.0
