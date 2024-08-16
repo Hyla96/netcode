@@ -14,6 +14,10 @@ class ByteManipulationUtil {
 
     return Uint8List.fromList(bytes);
   }
+
+  static int generatePrefixByte(int type, int sequence) {
+    return type << 4 | sequenceNumberToBytes(sequence).lengthInBytes;
+  }
 }
 
 extension ByteManipulationExtension on EncryptedPacket {

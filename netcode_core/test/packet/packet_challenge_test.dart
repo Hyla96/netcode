@@ -1,8 +1,7 @@
-import 'dart:math';
-import 'dart:typed_data';
-
 import 'package:netcode_core/netcode_core.dart';
 import 'package:test/test.dart';
+
+import '../util/test_util.dart';
 
 void main() {
   setUp(() {});
@@ -12,63 +11,50 @@ void main() {
     final challengeTokenSequence = 19828;
     final clientId = 177;
     final protocolId = 3117;
-    final rng = Random();
-    final userData = Uint8List.fromList(
-      List.generate(
-        256,
-        (_) => rng.nextInt(256),
-      ),
-    );
 
-    final token = ChallengeToken(
+    final util = TestUtil();
+    final encryptedChallengeToken = await util.getRandomEncryptedChallengeToken(
       clientId: clientId,
-      userData: userData,
     );
 
-    final nonce = Uint8List.fromList(
-      List.generate(
-        12,
-        (_) => rng.nextInt(256),
-      ),
+    final packetData = ConnectionChallengePacketData(
+      challengeTokenSequence: sequence,
+      encryptedToken: encryptedChallengeToken,
     );
-
-    final key = Uint8List.fromList(
-      List.generate(
-        32,
-        (_) => rng.nextInt(256),
-      ),
+    final prefixByte = ByteManipulationUtil.generatePrefixByte(
+      PacketType.challenge.code,
+      sequence,
     );
-
-    print('token');
-    print(token.toByteData().buffer.asUint8List());
-
     final packet = await EncryptedPacket.fromClearPacketData(
-      sequenceNumber:
-          ByteManipulationUtil.sequenceNumberToBytes(sequence).lengthInBytes,
-      packetData: await ConnectionChallengePacketData.fromClearChallengeToken(
-        token: token,
-        nonce: nonce,
-        key: key,
-        challengeTokenSequence: challengeTokenSequence,
-      ),
-      nonce: nonce,
-      encryptionKey: key,
+      sequenceNumber: sequence,
+      packetData: packetData,
+      nonce: util.challengeTokenNonce,
+      encryptionKey: util.challengeTokenKey,
       protocolId: protocolId,
-      prefixByte: PacketType.challenge.code << 4 | sequence,
+      prefixByte: prefixByte,
       type: PacketType.challenge,
-    );
-
-    final decryptedData = await packet?.getDecryptedData(
-      nonce: nonce,
-      encryptionKey: key,
-      protocolId: protocolId,
     );
 
     expect(packet, isNotNull);
 
-    final data = packet!.toByteData();
-    final parsedPacket = Packet.fromByteData(data) as EncryptedPacket;
+    final data = await packet!.getDecryptedData(
+      nonce: util.challengeTokenNonce,
+      encryptionKey: util.challengeTokenKey,
+      protocolId: protocolId,
+    ) as ConnectionChallengePacketData;
 
-    expect(parsedPacket.sequenceNumber, sequence);
+    expect(data, isNotNull);
+
+    expect(data.challengeTokenSequence, sequence);
+    expect(data.encryptedToken, encryptedChallengeToken);
+
+    final decryptedToken = await NetcodeEncryption.decryptChallengeToken(
+      encryptedToken: data.encryptedToken,
+      nonce: util.challengeTokenNonce,
+      encryptionKey: util.challengeTokenKey,
+    );
+
+    expect(decryptedToken.clientId, clientId);
+    expect(decryptedToken.userData, util.userData);
   });
 }

@@ -92,13 +92,6 @@ class TestUtil {
   Future<Uint8List> getRandomEncryptedChallengeToken({
     int clientId = 177,
   }) async {
-    final userData = Uint8List.fromList(
-      List.generate(
-        256,
-        (_) => Random().nextInt(256),
-      ),
-    );
-
     final token = ChallengeToken(
       clientId: clientId,
       userData: userData,
